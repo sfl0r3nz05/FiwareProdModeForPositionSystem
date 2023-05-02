@@ -1,0 +1,15 @@
+apiVersion: v1
+name: iotagent-json
+version: 0.0.6
+appVersion: 1.20.0-distroless
+home: https://fiware-iotagent-json.readthedocs.io/en/latest/
+description: A Helm chart for running the fiware iotagent-json on kubernetes.
+icon: https://fiware.github.io/catalogue/img/fiware.png
+keywords:
+  - fiware
+  - iot-agent
+sources:
+  - https://github.com/telefonicaid/iotagent-json
+maintainers:
+  - name: wistefan
+    email: stefan.wiedemann@fiware.org
