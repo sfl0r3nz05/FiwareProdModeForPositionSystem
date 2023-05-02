@@ -3,12 +3,9 @@ kind: Service
 metadata:
   name: nginx
 spec:
+  ports:
+  - port: 4430
+    targetPort: 8080
+    protocol: TCP
   selector:
     app: nginx
-  ports:
-    - protocol: TCP
-      name: nginx
-      targetPort: 8080
-      port: 4430
-status:
-  loadBalancer: {}

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-nginx-dh
+data:
+  dhparam.pem: |
+    -----BEGIN DH PARAMETERS-----
+    MIIBCAKCAQEAuBqcIiXiLbg1VSeypw026hbJHW1YBL2KKDrd003duZ33LCy+r13e
+    9jL6qau5UEue2TCzvIwdU04uQwL8RYH977fcZw7mJ9T4olzgU+ZwUp6IU9elUsxL
+    gJDFBoMl/+RNWpm5DjG62jhlaP73fDKcIdpM4RERcDso970zG9RYXpceZG/mTr6x
+    SpDOCUaQgZb/xAAsx7ZuEyhhpWoGI4d+ULiQZ5kHi7qw60DUxkkp3N+/w8JYIW+d
+    sdk94GhggfO9zutXXc2pZOXoSKTxZsQHucFOyAhXIZDzoFKfaxjFkJxT+EPCJaBk
+    4utL8+93e29r6hZgqtdQBG6WW0kke1wkcwIBAg==
+    -----END DH PARAMETERS-----

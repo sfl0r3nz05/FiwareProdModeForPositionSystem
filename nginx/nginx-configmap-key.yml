@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-nginx-key
+data:
+  nginx-selfsigned.key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEogIBAAKCAQEAsjs23yAlPgDMMxMYGQkLJbmwxXPqRDrTT4GsNcxXCrIvO3O2
+    YgU05wbQkNkjA/WXuKHG/vOLnvFt9jye9AoJWB5AlBMHZoAbxQpAHeCyaqZO1xyG
+    +y7B2QLpxPdJ/IyzIoI27Sdwa9iiMrJWv0BHHM5wQz5kegAtIsGHl9D8afLU30JP
+    dLrgqLn6H3KeTtXaJF8uuRmaZ1ZLBl1bdTsNhhBpNfTEx2LxApAFGp4FAuWZgtxb
+    IbIahuCALJNYyrZeqTz3M6zNLwv+Dws9lG/IFGxJUYXfp4e7D0vrqLTANbTmlXzo
+    7N+T0g2u0XiuwxgxflZZmPu+BkY2cWqV/blwjQIDAQABAoIBAEYrffz2oPL6SWrK
+    V7BzmQnvQ6NZcaAPMOaafPxpSNOTN3lGo0WQGzXhvvdoJZsHdAZi2v/BTvTyxIIv
+    d71IvkkNEAu8OiumwEghMwEQV+4ZL+0M9C+sRvFzbin32g8uLdCmR42y+1XaYnFn
+    OTPu0JCMzjILPG+z5hFK9GFXDCmBoloFY8ZFDfU48TdbJxO7nyKdj2Ai4KPf2GnM
+    922/OMT4SY1uzrawQnCa8rvrC9cuzGPWN76BVW0Lh0oDhPOHQGT/SUIH/emqgmGj
+    +OfmoDxIkbAGA4eUx/vljwBmTmwfIn++8B1fkQbrJUpoRk5bFmdegF5x1zHHEQQ5
+    f8OfJQECgYEA6iGtgYgrcfulJfP9usn3D6fXKlDP5ohV5ZdzfAhBLrO8TdySZKmq
+    c/dffijuZ35V+g0DZMj2D7vHQ8s5ufyKNKYhHUKf0FWprx8G2sgx+0yCLv1dRnIt
+    hGHZyXBgh7HxILv2xCsw0jBXELbjBGABup5VqhGbsA2NJYWOEcK+oGECgYEAwuDn
+    tlVnmrS2T2oPFnLEIfQzOfKsZWcaTxK/PKScTbRp/SuK2sX2oHm5NxXnBUHIFOhC
+    N0l22UzTTegUMs6baDgDuB2G/FEYXwyHU8cRIYsBy9KBLxb9JvmCnVlQzK5po0sn
+    LKGea9gA1HWcWIHAeascaNZPbesWgDrpl+x9b60CgYBuP2WANSqgBasCcB3uMuQP
+    jy0WU+9R0qj/740Fvq1S3HezAkY8+Fe3O6jPs15vhWHe2PncH3Uee4GdPrj0ByLd
+    H81ABftTEsNQHwAPTW2bs68piUy+u00LpTf0TuJlgzjT/S55uQzILNMSn8vOZ5bo
+    1V3pM1loUTlBjd4UJuu0gQKBgEySgJllT3M7ZJMpskn4yFYrFOHFF7Y0X+MIE7pp
+    V700kZzXuhSiSnjdu0gIxCCNq2eDp1j/9cIGbNSkxyL7iZbWw6dZesuztabLTnU9
+    t959NzR2PypYlxn0Wj0ndhcmxP1Tr03bJ1tqoVDZ8ZfZS97CvEP5SXaAM/QosdZv
+    Jw51AoGAY1VyC3CLcu+rSxS1o71Qn1po1nou84FyWSl06DVRYCyYgofRawR8ZSU7
+    PC9YWHtOe7xChvkulpUtsLv6T22hNcQn0W/OeK5bEaEC9biacVk0lmsswJ38aOmd
+    pEIf4oKXF3gO0tzKJg9ZHVQOQJR9QCJx4LtebdBrI7Q/DSGsqh8=
+    -----END RSA PRIVATE KEY-----
