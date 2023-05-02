@@ -3,7 +3,7 @@
 1. Install *kubectl*
 
    ```console
-   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/ kubectl"
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
    ```
 
    ```console
@@ -41,5 +41,5 @@
 4. Deployed Minikube, considering 2GB default memory isn't always enough
 
    ```console
-   minikube start --driver=none --memory=4096
+   minikube start --driver=none
    ```
