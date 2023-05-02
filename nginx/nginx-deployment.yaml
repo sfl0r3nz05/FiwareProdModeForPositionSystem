@@ -24,7 +24,7 @@ spec:
           volumeMounts:
             - mountPath: /certs
               name: nginx-claim0
-            - mountPath: /nginx/nginx.conf
+            - mountPath: /config/nginx.conf
               name: nginx-claim1
       volumes:
         - name: nginx-claim0
