@@ -5,3 +5,7 @@ This project constitues the *Production Mode* of the [Fiware Development for Pos
 ## Architecture
 
 ![Architecture](./documentation/images/ArchitectureK8s.png)
+
+## How to use
+
+1. [Prerequisites](./documentation/prerequisites.md).
