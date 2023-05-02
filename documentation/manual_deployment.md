@@ -9,3 +9,4 @@
 2. Deploy all components in following order:
 
     - [mosquitto](../mosquitto/README.md)
+    - [mongodb](../mongo/README.md)
