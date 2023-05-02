@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      name: nginx
+      targetPort: 8080
+      port: 4430
+status:
+  loadBalancer: {}
