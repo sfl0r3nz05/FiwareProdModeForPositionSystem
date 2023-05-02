@@ -13,11 +13,9 @@ spec:
         app: nginx
     spec:
       containers:
-      - image: nginx:1.13.6-alpine 
+      - image: nginx:1.18.0
         imagePullPolicy: Always
         name: nginx
-        ports:
-        - containerPort: 80
         volumeMounts:
         - name: configmap-nginx-conf
           mountPath: /etc/nginx/conf.d
