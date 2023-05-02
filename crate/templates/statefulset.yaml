@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "crate.fullname" . }}
+  labels:
+    app: {{ template "crate.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "crate.name" . }}
+  serviceName: {{ template "crate.fullname" . }}
+  replicas: {{ .Values.crate.replicas }}
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ template "crate.name" . }}
+        release: {{ .Release.Name }}
+        {{- if .Values.podAnnotations }}
+        annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+        {{- end }}
+    spec:
+    {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+    {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds}}
+      initContainers:
+      - name: init-sysctl
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command: ["sysctl", "-w", "vm.max_map_count=262144"]
+        securityContext:
+          privileged: true
+      containers:
+      - name: crate
+        image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: {{ template "crate.command" . }}
+        {{ template "crate.mounts" . }}
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.service.adminPort }}
+          name: {{ .Values.service.adminName }}
+        - containerPort: {{ .Values.service.clusterPort }}
+          name: {{ .Values.service.clusterName }}
+        - containerPort: {{ .Values.service.postgresPort }}
+          name: {{ .Values.service.postgresName }}
+        env:
+        - name: CRATE_HEAP_SIZE
+          value: {{ .Values.crate.createHeapSize | quote }}
+        - name: EXPECTED_NODES
+          value: {{ .Values.crate.replicas | quote }}
+        - name: CLUSTER_NAME
+          value: {{ .Values.crate.clusterName | quote }}
+        - name: RECOVER_AFTER_NODES
+          value: {{ .Values.crate.recoverAfterNodes | quote }}
+        - name: MINIMUM_MASTER_NODES
+          value: {{ .Values.crate.minimumMasterNodes | quote }}
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            port: {{ .Values.service.adminName }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+          successThreshold: {{ .Values.livenessProbe.successThreshold }}
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          exec:
+            command: ["sh", "-c", "curl -s http://localhost:4200 | grep -q '\"ok\" : true,'"]
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+          successThreshold: {{ .Values.readinessProbe.successThreshold }}
+        {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+{{ template "crate.volumes" . }}
+{{ template "crate.pvc" . }}

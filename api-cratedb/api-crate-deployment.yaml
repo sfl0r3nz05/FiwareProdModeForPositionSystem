@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-crate
+  labels:
+    io.kompose.service: api-crate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: api-crate
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: api-crate
+    spec:
+      containers:
+        - env:
+            - name: CRATE_HOST_PORT
+              value: crate:4200
+          image: sflorenz05/api-python-cratedb:v0.1
+          name: api-crate
+          ports:
+            - containerPort: 8080
+          resources: {}
+      restartPolicy: Always
+status: {}

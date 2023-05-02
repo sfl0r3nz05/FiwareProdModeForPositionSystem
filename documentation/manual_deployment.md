@@ -12,3 +12,8 @@
     - [mongodb](../mongo/README.md)
     - [iotagent-json](../iotagent-json/README.md)
     - [orion](../orion/README.md)
+    - [quantumleap](../quantumleap/README.md)
+    - [crate](../crate/README.md)
+    - [api-cratedb](../api-cratedb/README.md)
+    - [nginx](../nginx/README.md)
+    - [swagger](../swagger/README.md)

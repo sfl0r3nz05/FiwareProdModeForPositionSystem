@@ -1,0 +1,202 @@
+apiVersion: "apps/v1"
+kind: Deployment
+metadata:
+  name: {{ template "quantumleap.fullname" . }}
+  labels:
+    app: {{ template "quantumleap.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "quantumleap.name" . }}
+{{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  strategy:
+{{ toYaml .Values.updateStrategy | indent 4 }}
+  template:
+    metadata:
+      annotations:
+        chaos.alpha.kubernetes.io/enabled: "{{ .Values.chaos.enabled }}"
+      labels:
+        app: {{ template "quantumleap.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+    {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+    {{- end }}
+    {{- if .Values.init.enabled }}
+      initContainers:
+        - name: init-postgresql
+          image: "{{ .Values.init.image.repository }}:{{ .Values.init.image.tag }}"
+          imagePullPolicy: {{ .Values.init.image.pullPolicy }}
+          env:
+          - name: PG_HOST
+            value: {{ .Values.database.timescale.host }}
+          - name: PG_PASS
+            {{- if .Values.init.passwordSecret }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.init.passwordSecret }}
+                key: password
+            {{- else }}
+            value: {{ .Values.init.password }}
+            {{- end }}
+          - name: QL_DB_PASS
+            {{- if .Values.database.timescale.passwordSecret }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.database.timescale.passwordSecret }}
+                key: password
+            {{- else }}
+            value: {{ .Values.database.timescale.password }}
+            {{- end }}
+          - name: QL_DB_INIT_DIR
+            value: "/init"
+          resources:
+{{ toYaml .Values.init.resources | indent 12 }}
+          volumeMounts:
+            - name: init
+              mountPath: "/init"
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if gt .Values.cache.wq.workers 0.0 }}
+          command:
+            - supervisord
+            - -n
+            - -c
+            - ./wq/supervisord.conf
+          {{- end }}
+          ports:
+            - containerPort: {{ .Values.service.internalPort }}
+          env:
+          - name: CRATE_HOST
+            value: {{ .Values.database.crate.host }}
+          - name: CRATE_PORT
+            value: "{{ .Values.database.crate.port }}"
+          - name: CRATE_BACKOFF_FACTOR
+            value: {{ .Values.database.crate.backoffFactor | quote }}
+          - name: CRATE_WAIT_ACTIVE_SHARDS
+            value: {{ .Values.database.crate.waitActiveShards | quote }}
+          - name: DEFAULT_LIMIT
+            value: {{ .Values.runtime.defaultLimit | quote }}
+          - name: KEEP_RAW_ENTITY
+            value: {{ .Values.runtime.keepRawEntity | quote }}
+          {{- if gt .Values.runtime.insertMaxSize 0.0 }}
+          - name: INSERT_MAX_SIZE
+            value: {{ .Values.runtime.insertMaxSize | quote }}
+          {{- end }}
+          - name: LOGLEVEL
+            value: {{ .Values.runtime.logLevel }}
+          - name: POSTGRES_HOST
+            value: {{ .Values.database.timescale.host }}
+          - name: POSTGRES_PORT
+            value: "{{ .Values.database.timescale.port }}"
+          - name: POSTGRES_DB_NAME
+            value: {{ .Values.database.timescale.name }}
+          - name: POSTGRES_DB_USER
+            value: {{ .Values.database.timescale.user }}
+          - name: POSTGRES_DB_PASS
+            {{- if .Values.database.timescale.passwordSecret }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.database.timescale.passwordSecret }}
+                key: password
+            {{- else }}
+            value: {{ .Values.database.timescale.password }}
+            {{- end }}
+{{- if .Values.database.timescale.ssl }}
+          - name: POSTGRES_USE_SSL
+            value: t
+{{- end }}
+{{- if .Values.config }}
+          - name: QL_CONFIG
+            value: /config/config.yml
+{{- end }}
+          - name: QL_DEFAULT_DB
+            value: {{ .Values.runtime.defaultDb }}
+          - name: USE_GEOCODING
+            value: {{ .Values.geocoding.enabled | quote }}
+          - name: REDIS_HOST
+            value: {{ .Values.redis.host }}
+          - name: REDIS_PORT
+            value: {{ .Values.redis.port | quote }}
+          - name: CACHE_GEOCODING
+            value: {{ .Values.cache.geocoding | quote }}
+          - name: CACHE_QUERIES
+            value: {{ .Values.cache.queries | quote }}
+          - name: DEFAULT_CACHE_TTL
+            value: {{ .Values.cache.defaultTtl | quote }}
+          - name: WQ_OFFLOAD_WORK
+            value: {{ .Values.cache.wq.offloadWork | quote }}
+          - name: WQ_RECOVER_FROM_ENQUEUEING_FAILURE
+            value: {{ .Values.cache.wq.recoverFromEnqueueingFailure | quote }}
+          - name: WQ_MAX_RETRIES
+            value: {{ .Values.cache.wq.maxRetries | quote }}
+          - name: WQ_FAILURE_TTL
+            value: {{ .Values.cache.wq.failureTtl | quote }}
+          - name: WQ_SUCCESS_TTL
+            value: {{ .Values.cache.wq.successTtl | quote }}
+          {{- if gt .Values.cache.wq.workers 0.0 }}
+          - name: WQ_WORKERS
+            value: {{ .Values.cache.wq.workers | quote }}
+          {{- end }}
+          - name: USE_FLASK
+            value: {{ .Values.runtime.useFlask | quote }}
+          - name: WORKERS
+            value: {{ .Values.runtime.workers | quote }}
+          - name: THREADS
+            value: {{ .Values.runtime.threads | quote }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.internalPort }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.service.internalPort }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.readinessProbe.successThreshold }}
+          {{- end }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          {{- if .Values.config }}
+          volumeMounts:
+            - name: config
+              mountPath: /config/config.yml
+              subPath: config.yml
+          {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+      volumes:
+      {{- if .Values.config }}
+        - name: config
+          configMap:
+            name: {{ template "quantumleap.fullname" . }}
+      {{- end }}
+      {{- if .Values.init.enabled }}
+        - name: init
+          emptyDir: {}
+      {{- end }}
