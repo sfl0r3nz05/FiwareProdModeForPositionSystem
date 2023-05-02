@@ -22,7 +22,7 @@ spec:
             - containerPort: 8080
           resources: {}
           volumeMounts:
-            - mountPath: /certs
+            - mountPath: /config/certs
               name: nginx-claim0
             - mountPath: /config/nginx.conf
               name: nginx-claim1

@@ -1,4 +1,4 @@
-# Deploy API CrateDB
+# Deploy Nginx as Reverse Proxy
 
 1. Go into `nginx` directory
 
