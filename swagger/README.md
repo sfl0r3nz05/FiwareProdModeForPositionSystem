@@ -1,6 +1,17 @@
 # Deploy Swagger
 
-1. Verify Persistent Volume Claims (PVC) related with swagger no exists
+1. Go into `Swagger` directory
+
+    ```console
+    cd ~/FiwareProdModeForPositionSystem/swagger
+    ```
+
+2. Execute deployments and services
+
+    ```console
+    kubectl create -f . -n fiware
+    ```
+3. Verify Persistent Volume Claims (PVC) related with swagger no exists
 
     ```console
     kubectl get pvc -n fiware
@@ -14,13 +25,13 @@
     swagger-claim0   Bound    pvc-f29f0711-1934-429b-b165-8766f8e2a154   100Mi      RWO            standard       10m
     ```
 
-2. Delete Persistent Volume Claims (PVC).
+4. Delete Persistent Volume Claims (PVC).
 
     ```console
     kubectl delete pvc swagger-claim0 -n fiware
     ```
 
-3. Verify Persistent Volume (PV) related with swagger no exists:
+5. Verify Persistent Volume (PV) related with swagger no exists:
 
     ```console
     kubectl get pv -n fiware
@@ -34,7 +45,7 @@
     pvc-f29f0711-1934-429b-b165-8766f8e2a154   100Mi      RWO            Delete           Bound    fiware/swagger-claim0   standard                13s
     ```
 
-4. Delete Persistent Volume (PV). *The previous output is taken into account*.
+6. Delete Persistent Volume (PV). *The previous output is taken into account*.
 
     ```console
     kubectl delete pv pvc-f29f0711-1934-429b-b165-8766f8e2a154 -n fiware
@@ -42,7 +53,7 @@
 
     > Troubleshootings: [How to delete persistent volumes in Kubernetes](https://stackoverflow.com/questions/57401526/how-to-delete-persistent-volumes-in-kubernetes/74039496#74039496)
 
-5. Verify that swagger ConfigMap no exists.
+7. Verify that swagger ConfigMap no exists.
 
     ```console
     kubectl get configmap -n fiware
@@ -58,13 +69,13 @@
     swagger            1      13m
     ```
 
-6. Delete ConfigMap
+8. Delete ConfigMap
 
     ```console
     kubectl delete configmap swagger -n fiware
     ```
 
-7. If the Cluster deployed is a *Test Cluster*.
+9. If the Cluster deployed is a *Test Cluster*.
 
     > **Note:** If the Cluster deployed is a K8s Cluster not jump to *step 8*.
 
@@ -138,15 +149,3 @@
           }
         ]
         ```
-
-8. Go into `Swagger` directory
-
-    ```console
-    cd ~/FiwareProdModeForPositionSystem/swagger
-    ```
-
-9. Execute deployments and services
-
-    ```console
-    kubectl create -f . -n fiware
-    ```
