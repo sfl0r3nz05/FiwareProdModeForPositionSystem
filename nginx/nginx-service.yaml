@@ -8,5 +8,7 @@ spec:
     protocol: TCP
     port: 4430
     targetPort: 8080
+    nodePort: 31592
+  type: NodePort
   selector:
     app: nginx

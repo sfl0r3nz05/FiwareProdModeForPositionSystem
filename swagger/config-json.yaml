@@ -19,7 +19,7 @@ data:
     ],
     "servers": [
       {
-        "url": "http://nginx:4430"
+        "url": "https://10.63.27.39:31592"
       }
     ],
     "basePath": "/",
