@@ -4,8 +4,9 @@ metadata:
   name: nginx
 spec:
   ports:
-  - port: 4430
-    targetPort: 8080
+  - name: nginx
     protocol: TCP
+    port: 4430
+    targetPort: 8080
   selector:
     app: nginx

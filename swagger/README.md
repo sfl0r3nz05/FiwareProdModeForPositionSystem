@@ -142,7 +142,7 @@
 8. Go into `Swagger` directory
 
     ```console
-    cd ~/FiwareK8sProdMode/swagger
+    cd ~/FiwareProdModeForPositionSystem/swagger
     ```
 
 9. Execute deployments and services

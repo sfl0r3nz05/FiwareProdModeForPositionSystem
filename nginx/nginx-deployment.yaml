@@ -16,6 +16,9 @@ spec:
       - image: nginx:1.18.0
         imagePullPolicy: Always
         name: nginx
+        ports:
+        - containerPort: 8080
+        - containerPort: 4430
         volumeMounts:
         - name: configmap-nginx-conf
           mountPath: /etc/nginx/conf.d
