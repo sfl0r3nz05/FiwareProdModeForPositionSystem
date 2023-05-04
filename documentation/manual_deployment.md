@@ -29,3 +29,27 @@
        ```console
        git submodule update --init --recursive
        ```
+
+   2. Update the `PROTOCOL` environmental variable from `AMQP` to `MQTT`:
+
+       ```console
+       cd ./Publisher-Agent
+       nano docker-compose.yml
+       PROTOCOL=MQTT
+       ```
+
+   3. Update the `MQTT_QUEUE_HOST` environmental variable for `MQTT` broker address. E.g.:
+
+       ```console
+       cd ./Publisher-Agent
+       nano docker-compose.yml
+       MQTT_QUEUE_HOST=10.63.27.49
+       ```
+
+   4. Update the `MQTT_QUEUE_PORT` environmental variable for `MQTT` broker port. E.g.:
+
+       ```console
+       cd ./Publisher-Agent
+       nano docker-compose.yml
+       MQTT_QUEUE_PORT=31257
+       ```
