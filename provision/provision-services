@@ -1,0 +1,145 @@
+#!/bin/bash
+#
+#  curl commands to reload the data from the previous tutorial
+#
+#
+
+set -e
+
+printf "⏳ Provisioning IoT services "
+
+
+#
+# Create a service groups for all UltraLight IoT devices
+#
+
+curl -s -o /dev/null -X POST \
+  "http://iot-agent:$IOTA_NORTH_PORT/iot/services" \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: openiot' \
+  -H 'fiware-servicepath: /' \
+  -d '{
+    "services": [
+        {
+            "apikey": "5jggokgpepnvsb2uv4s40d59ov",
+            "cbroker":     "'"http://orion:$ORION_PORT"'",
+            "entity_type": "Tag",
+            "transport": "MQTT",
+            "resource": "",
+            "attributes": [
+                {
+                    "object_id": "ID_mensaje",
+                    "name": "ID_mensaje",
+                    "type": "Integer",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "text",
+                            "value": "text"
+                        }
+                    }
+                },
+                {
+                    "object_id": "timestamp",
+                    "name": "timestamp",
+                    "type": "DateTime",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "text",
+                            "value": "timestamp"
+                        }
+                    }
+                },
+                {
+                    "object_id": "tagID",
+                    "name": "tagID",
+                    "type": "Text",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "tagID"
+                        }
+                    }
+                },
+                {
+                    "object_id": "x",
+                    "name": "x",
+                    "type": "Number",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_X_position"
+                        }
+                    }
+                },
+                {
+                    "object_id": "y",
+                    "name": "y",
+                    "type": "Number",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_Y_position"
+                        }
+                    }
+                },
+                {
+                    "object_id": "z",
+                    "name": "z",
+                    "type": "Number",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_Z_position"
+                        }
+                    }
+                },
+                {
+                    "object_id": "hpl_1",
+                    "name": "hpl_1",
+                    "type": "Number",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_hpl"
+                        }
+                    }
+                },
+                {
+                    "object_id": "vpl",
+                    "name": "vpl",
+                    "type": "Number",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_vpl"
+                        }
+                    }
+                },
+                {
+                    "object_id": "SingularMatrix",
+                    "name": "SingularMatrix",
+                    "type": "Integer",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_singularMatrix"
+                        }
+                    }
+                },
+                {
+                    "object_id": "AlarmType",
+                    "name": "AlarmType",
+                    "type": "Integer",
+                    "metadata": {
+                        "unitCode": {
+                            "type": "Text",
+                            "value": "metadata_for_alarmType"
+                        }
+                    }
+                }               
+            ]
+        }
+    ]
+}'
+
+echo -e " \033[1;32mdone\033[0m"
