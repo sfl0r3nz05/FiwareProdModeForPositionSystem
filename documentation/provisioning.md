@@ -98,22 +98,7 @@
             QUANTUMLEAP_HOST=172.31.85.246
             ```
 
-4. Copy the MongoDB pod name. E.g.:
-
-    ```console
-    usuario@ic2m2:~/FiwareProdModeForPositionSystem/provision$ kubectl get all -n fiware
-    NAME                                 READY   STATUS    RESTARTS   AGE
-    pod/mongo-db-85c84c46f4-mb8ww        1/1     Running   0          24m
-    ...
-    ```
-
-    - Update environmental variables:
-    
-        ```console
-        MOMGO_POD_NAME=
-        ```
-
-5. Once service has been deployed, the NodePort type must be enabled to syncronize the `publisher agent` with the `MQTT broker`.
+4. Once service has been deployed, the NodePort type must be enabled to syncronize the `publisher agent` with the `MQTT broker`.
 
     - mosquitto:
 
@@ -142,7 +127,30 @@
         MQTT_QUEUE_PORT=
         ```
 
-6. Deploy containers, add database indexes, create entities, device provisioning and create subscriptions.
+    - Add `host` as `network_mode`. Sample of result:
+    
+        ```console
+        services:
+          publisher-agent:
+            container_name: publisher
+            hostname: publisher
+            build:
+              context: .
+            volumes:
+              - ./src:/publisher-agent/src
+            environment:
+              - PROTOCOL=MQTT # Must be set to AMQP or MQTT
+              - AMQP_QUEUE_HOST=rmq0
+              - AMQP_QUEUE_PORT=5672
+              - MQTT_QUEUE_HOST=10.63.27.39
+              - MQTT_QUEUE_PORT=30519
+              - TOPIC=/5jggokgpepnvsb2uv4s40d59ov/tag001/attrs
+            ports:
+              - 8053:8053
+            network_mode: "host"
+        ```    
+
+5. Deploy containers, add database indexes, create entities, device provisioning and create subscriptions.
 
     ```console
     ./services provision

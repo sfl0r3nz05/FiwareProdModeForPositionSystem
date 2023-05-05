@@ -98,7 +98,7 @@ case "${command}" in
 		cd ../Publisher-Agent && ${dockerCmd} up -d
 		;;
 	"start")
-		cd ./CSV-Data-Sender && ${dockerCmd} up -d
+		cd ../CSV-Data-Sender && ${dockerCmd} up -d
 		;;
 	*)
 		echo "Command not Found."
