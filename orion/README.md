@@ -11,9 +11,3 @@ A Helm chart for running the fiware orion context broker on kubernetes.
     ```console
     helm install orion . -n fiware
     ```
-
-2. Once service has been deployed, the *NodePort* type must be enabled:
-
-    ```console
-    kubectl edit service orion -n fiware
-    ```
