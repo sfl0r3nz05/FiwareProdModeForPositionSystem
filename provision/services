@@ -14,28 +14,27 @@ if (( $# < 1 )); then
 fi
 
 loadData () {
-	addDatabaseIndex
+#	addDatabaseIndex
 	docker run --rm -v $(pwd)/import-entities:/import-entities \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
 		--entrypoint /bin/ash curlimages/curl import-entities
-	waitForIoTAgent
 	docker run --rm -v $(pwd)/provision-services:/provision-services \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
 		-e IOTA_JSON_HOST="${IOTA_JSON_HOST}" \
-		-e IOTA_NORTH_PORT="${IOTA_NORTH_PORT}" \
+		-e IOTA_JSON_NORTH_PORT="${IOTA_JSON_NORTH_PORT}" \
 		--entrypoint /bin/ash curlimages/curl provision-services
 	docker run --rm -v $(pwd)/provision-devices:/provision-devices \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
 		-e IOTA_JSON_HOST="${IOTA_JSON_HOST}" \
-		-e IOTA_NORTH_PORT="${IOTA_NORTH_PORT}" \
+		-e IOTA_JSON_NORTH_PORT="${IOTA_JSON_NORTH_PORT}" \
 		--entrypoint /bin/ash curlimages/curl provision-devices
 	docker run --rm -v $(pwd)/subscription-entities:/subscription-entities \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
-		-e QUANTUMLEAP_PORT="${QUANTUMLEAP_HOST}" \
+		-e QUANTUMLEAP_HOST="${QUANTUMLEAP_HOST}" \
 		-e QUANTUMLEAP_PORT="${QUANTUMLEAP_PORT}" \
 		--entrypoint /bin/ash curlimages/curl subscription-entities
 	echo ""
@@ -44,8 +43,9 @@ loadData () {
 
 addDatabaseIndex () {
 	printf "Adding appropriate \033[1mMongoDB\033[0m indexes for \033[1;34mOrion\033[0m  ..."
-	kubectl exec -n fiware -it pod/"${MOMGO_POD_NAME}" -- /bin/bash '
-	conn = new Mongo();db.createCollection("orion-openiot");
+	kubectl exec -n fiware -it pod/"${MONGO_POD_NAME}" -- /bin/bash '
+	conn = new Mongo();
+	db.createCollection("orion-openiot");
 	db = conn.getDB("orion-openiot");
 	db.createCollection("entities");
 	db.entities.createIndex({"_id.servicePath": 1, "_id.id": 1, "_id.type": 1}, {unique: true});
@@ -55,7 +55,7 @@ addDatabaseIndex () {
 	echo -e " \033[1;32mdone\033[0m"
 
 	printf "Adding appropriate \033[1mMongoDB\033[0m indexes for \033[1;34mIoT-Agent\033[0m  ..."
-	kubectl exec -n fiware -it pod/"${MOMGO_POD_NAME}" -- /bin/bash '
+	kubectl exec -n fiware -it pod/"${MONGO_POD_NAME}" -- /bin/bash '
 	conn = new Mongo();
 	db = conn.getDB("iotagent-json");
 	db.createCollection("devices");
@@ -87,7 +87,6 @@ case "${command}" in
 		;;
 	 "provision")
 		export $(cat .env | grep "#" -v)
-		stoppingContainers
 		echo -e "Starting containers: \033[1;34mOrion\033[0m, \033[1;34mQuantumLeap\033[0m, \033[1;36mIoT-Agent\033[0m, \033[1mTutorial\033[0m, a \033[1mGrafana\033[0m metrics dashboard, \033[1mCrateDB\033[0m and \033[1mMongoDB\033[0m databases and a \033[1mRedis\033[0m cache."
 		echo -e "- \033[1;34mOrion\033[0m is the context broker"
 		echo -e "- \033[1;34mQuantumLeap\033[0m will write to CrateDB"
@@ -95,10 +94,8 @@ case "${command}" in
 		echo -e "- \033[1;36mIoT-Agent\033[0m is configured for the UltraLight Protocol"
 		echo -e "- \033[1mTutorial\033[0m acts as a series of dummy IoT Sensors over MQTT"
 		echo ""
-		${dockerCmd} up -d --remove-orphans
 		loadData
-		displayServices
-		cd ./Publisher-Agent && ${dockerCmd} up -d
+		cd ../Publisher-Agent && ${dockerCmd} up -d
 		;;
 	"start")
 		cd ./CSV-Data-Sender && ${dockerCmd} up -d
