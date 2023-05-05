@@ -10,4 +10,5 @@ This project constitues the *Production Mode* of the [Fiware Development for Pos
 
 1. [Prerequisites](./documentation/prerequisites.md).
 2. [Manual component deployment](./documentation/manual_deployment.md).
-3. [Deployed components provisioning](./documentation/provisioning.md)
+3. [Deployed components provisioning](./documentation/provisioning.md).
+4. [Sending data on deployed components](./documentation/sending_data.md).

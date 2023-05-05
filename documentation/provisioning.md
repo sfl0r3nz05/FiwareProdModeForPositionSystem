@@ -1,12 +1,18 @@
 # Deployed components provisioning
 
-1. Pull docker images
+1. Go into provision folder:
+
+    ```console
+    cd ~/FiwareProdModeForPositionSystem/provision/
+    ```
+
+2. Pull docker images
 
     ```console
     ./services create
     ```
 
-2. Once service has been deployed, the NodePort type must be enabled to provision `entities`, `devices`, `services` and `subscriptions`:
+3. Once service has been deployed, the NodePort type must be enabled to provision `entities`, `devices`, `services` and `subscriptions`:
 
     - iotagent-json:
 
@@ -92,7 +98,19 @@
             QUANTUMLEAP_HOST=172.31.85.246
             ```
 
-3. Deploy containers, add database indexes, create entities, device provisioning and create subscriptions.
+4. Copy the MongoDB pod name. E.g.:
+
+    ```console
+
+    ```
+
+    - Update environmental variables:
+    
+        ```console
+        MOMGO_POD_NAME=
+        ```
+
+5. Deploy containers, add database indexes, create entities, device provisioning and create subscriptions.
 
     ```console
     ./services provision

@@ -13,7 +13,7 @@ printf "⏳ Loading QuantumLeap data "
 #
 # TAG
 curl -s -o /dev/null -X POST \
-  'http://orion:'$ORION_PORT'/v2/subscriptions/' \
+  'http://'$ORION_HOST':'$ORION_PORT'/v2/subscriptions/' \
   -H 'Content-Type: application/json' \
   -H 'fiware-service: openiot' \
   -H 'fiware-servicepath: /' \
@@ -30,7 +30,7 @@ curl -s -o /dev/null -X POST \
       }
     },
     "notification": {
-      "http": {"url": "http://quantumleap:'$QUANTUMLEAP_PORT'/v2/notify"},
+      "http": {"url": "http://'$QUANTUMLEAP_HOST':'$QUANTUMLEAP_PORT'/v2/notify"},
       "attrs": [ "ID_mensaje", "timestamp", "tagID", "x", "y", "z", "hpl_1", "vpl", "SingularMatrix", "AlarmType" ],
       "metadata": [
         "dateCreated",

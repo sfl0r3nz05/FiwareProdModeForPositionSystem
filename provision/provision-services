@@ -14,7 +14,7 @@ printf "⏳ Provisioning IoT services "
 #
 
 curl -s -o /dev/null -X POST \
-  "http://iot-agent:$IOTA_NORTH_PORT/iot/services" \
+  "http://'$IOTA_JSON_HOST':$IOTA_JSON_NORTH_PORT/iot/services" \
   -H 'Content-Type: application/json' \
   -H 'fiware-service: openiot' \
   -H 'fiware-servicepath: /' \
@@ -22,7 +22,7 @@ curl -s -o /dev/null -X POST \
     "services": [
         {
             "apikey": "5jggokgpepnvsb2uv4s40d59ov",
-            "cbroker":     "'"http://orion:$ORION_PORT"'",
+            "cbroker":     "'"http://$ORION_HOST:$ORION_PORT"'",
             "entity_type": "Tag",
             "transport": "MQTT",
             "resource": "",
