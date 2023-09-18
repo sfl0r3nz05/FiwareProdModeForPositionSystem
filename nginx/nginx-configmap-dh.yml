@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: configmap-nginx-dh
+  name: nginx-dh
 data:
   dhparam.pem: |
     -----BEGIN DH PARAMETERS-----
-    MIIBCAKCAQEAuBqcIiXiLbg1VSeypw026hbJHW1YBL2KKDrd003duZ33LCy+r13e
-    9jL6qau5UEue2TCzvIwdU04uQwL8RYH977fcZw7mJ9T4olzgU+ZwUp6IU9elUsxL
-    gJDFBoMl/+RNWpm5DjG62jhlaP73fDKcIdpM4RERcDso970zG9RYXpceZG/mTr6x
-    SpDOCUaQgZb/xAAsx7ZuEyhhpWoGI4d+ULiQZ5kHi7qw60DUxkkp3N+/w8JYIW+d
-    sdk94GhggfO9zutXXc2pZOXoSKTxZsQHucFOyAhXIZDzoFKfaxjFkJxT+EPCJaBk
-    4utL8+93e29r6hZgqtdQBG6WW0kke1wkcwIBAg==
+    MIIBCAKCAQEA/8qAFs39/eCLU4rOffJOAEJIrWHmgUGS7ay5HXUmWhTZptuesnkL
+    8PQxEllZ/lLG37TLK9BNKDAf2x4GIFs+HqoV9YZH6dBVKb58Agui0EfXpfB7cf/p
+    GYxAR7Pg6AvBilOWKHdOrHQ1TY2dG4heGNHV181dd4shK4wyvP9dnKYvBfTlTW9o
+    1fEOhKG/RJ2op41gGiBnJgmVy6TOQbnXGoIR8U1uvGElWIlrOt7HreYg5dWktYMC
+    3uvgd9BW7wHP4HWbOlErUjrCABtNVAM/3y71+aKd+98CUGKfUa5JT9HaV0bqjCh5
+    1S6PQVmXfolLLXLTcZRM5mrlXJeWpQ31WwIBAg==
     -----END DH PARAMETERS-----

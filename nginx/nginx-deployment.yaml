@@ -17,33 +17,34 @@ spec:
         imagePullPolicy: Always
         name: nginx
         ports:
-        - containerPort: 8080
-        - containerPort: 4430
+          - name: api-crate
+            containerPort: 8080
+        resources: {}
         volumeMounts:
-        - name: configmap-nginx-conf
-          mountPath: /etc/nginx/conf.d
-        - name: configmap-nginx-crt
-          mountPath: /etc/nginx/ssl/crt
-        - name: configmap-nginx-key
-          mountPath: /etc/nginx/ssl/key
-        - name: configmap-nginx-dh
-          mountPath: /etc/nginx/ssl
-        - name: configmap-nginx-rootca
-          mountPath: /etc/nginx/ssl/rootca
+          - name: nginx-conf
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: nginx-dh
+            mountPath: /certs/dhparam.pem
+            subPath: dhparam.pem
+          - name: nginx-selfsigned-crt
+            mountPath: /certs/nginx-selfsigned.crt
+            subPath: nginx-selfsigned.crt
+          - name: nginx-selfsigned-key
+            mountPath: /certs/nginx-selfsigned.key
+            subPath: nginx-selfsigned.key
       # Load the configuration files for nginx
+      restartPolicy: Always
       volumes:
-        - name: configmap-nginx-conf
+        - name: nginx-conf
           configMap:
-            name: configmap-nginx-conf
-        - name: configmap-nginx-dh
+            name: nginx-conf
+        - name: nginx-dh
           configMap:
-            name: configmap-nginx-dh
-        - name: configmap-nginx-crt
+            name: nginx-dh
+        - name: nginx-selfsigned-crt
           configMap:
-            name: configmap-nginx-crt
-        - name: configmap-nginx-key
+            name: nginx-selfsigned-crt
+        - name: nginx-selfsigned-key
           configMap:
-            name: configmap-nginx-key
-        - name: configmap-nginx-rootca
-          configMap:
-            name: configmap-nginx-rootca
+            name: nginx-selfsigned-key

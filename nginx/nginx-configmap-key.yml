@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: configmap-nginx-key
+  name: nginx-selfsigned-key
 data:
   nginx-selfsigned.key: |
     -----BEGIN RSA PRIVATE KEY-----

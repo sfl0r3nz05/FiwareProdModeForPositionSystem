@@ -4,11 +4,13 @@ metadata:
   name: nginx
 spec:
   ports:
-  - name: nginx
+  type: NodePort
+  - name: api-crate
     protocol: TCP
     port: 4430
     targetPort: 8080
-    nodePort: 31592
-  type: NodePort
+    nodePort: 30080
   selector:
     app: nginx
+status:
+  loadBalancer: {}
