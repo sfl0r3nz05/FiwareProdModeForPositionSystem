@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  synthetic-data-generator-file:
+    container_name: csv-data-sender
+    build:
+      context: .
+    environment:
+      - SOCK_LISTENER_HOST=publisher
+      - SOCK_LISTENER_PORT=8053
+      - SLEEP_TIME=0.9
