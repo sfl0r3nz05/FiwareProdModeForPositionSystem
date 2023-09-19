@@ -277,8 +277,6 @@ loadDataMinikube () {
 	export NODE_PORT_API_ORION=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[1].nodePort}")
 	export NODE_PORT_DEV_MNGM=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[2].nodePort}")	
 	echo "Service api-crate has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_API_CRATE."
-  	echo "Service api-orion has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_API_ORION."
-  	echo "Service api-dev-mngmt has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_DEV_MNGM."
 
 	# MQTT-CLIENT-------------------------------------------------------------------------------------------------------------------------
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')
