@@ -1,0 +1,33 @@
+#!/bin/bash
+#
+#  curl commands to reload the data from the previous tutorial
+#
+#
+
+set -e
+
+printf "⏳ Initializing CrateDB \n"
+
+sleep 3
+
+printf "🚀 Pushing urn:ngsi-ld:Tag:001 \n"
+
+curl -s -o /dev/null -X PATCH \
+  "http://$ORION_HOST:$ORION_PORT/v2/entities/urn:ngsi-ld:Tag:001/attrs" \
+  -H 'Content-Type: application/json' \
+  -H 'fiware-service: org1' \
+  -H 'fiware-servicepath: /' \
+  -d '{
+    "ID_mensaje": {"value": 109,"type": "Integer"},
+    "timestamp": {"value": "1694953074","type": "DateTime"},
+    "tagID": {"value": "T3", "type": "Text"},
+    "x": {"value": 1.12,"type": "Number"},
+    "y": {"value": 3.75,"type": "Number"},
+    "z": {"value": 0.29,"type": "Number"},
+    "hpl_1": {"value": 5.4,"type": "Number"},
+    "vpl": {"value": 7.3,"type": "Number"},
+    "SingularMatrix": {"value": 7,"type": "Number"},
+    "AlarmType": {"value": 12,"type": "Integer"}
+    }'
+
+echo -e " \033[1;32mdone\033[0m"

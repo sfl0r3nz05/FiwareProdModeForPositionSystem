@@ -13,65 +13,321 @@ if (( $# < 1 )); then
     exit 1
 fi
 
-loadData () {
-#	addDatabaseIndex
-	docker run --rm -v $(pwd)/import-entities:/import-entities \
+# Verify installation of kubectl, kubernetes cluster and helm
+verifyInstallation () {
+
+	# Check if `kubectl` is installed
+	if command -v kubectl &> /dev/null; then
+    	echo -e "kubectl is installed in the host."
+	elif command -v lxc exec master -- kubectl &> /dev/null; then
+		echo -e "kubectl is installed in lxc container."
+	else
+		echo "kubectl is not installed."
+	fi
+
+# Check if a Kubernetes cluster is accessible
+	if kubectl cluster-info &> /dev/null; then
+    	echo "An existing Kubernetes cluster is accessible."
+	elif lxc exec master -- kubectl cluster-info &> /dev/null; then
+		echo "An existing Kubernetes cluster is accessible inside a lxc container."
+	else
+    	echo "No existing Kubernetes cluster is accessible."
+	fi
+	
+# Check if helm is installed
+	if command -v helm &> /dev/null; then
+	    echo -e "Helm is installed in the host."
+	elif command -v lxc exec master -- helm version &> /dev/null; then
+		echo "helm is installed inside a lxc container."
+	else
+		echo "Helm is not installed."
+	fi
+}
+
+clustertype (){
+# Check cluster type
+	if kubectl cluster-info &> /dev/null; then
+		current_context=$(kubectl config current-context)
+		cluster_name=$(kubectl config get-contexts "$current_context" | tail -n 1 | awk '{print $3}')
+	elif lxc exec master -- kubectl cluster-info &> /dev/null; then
+		current_context=$(lxc exec master -- kubectl config current-context)
+		cluster_name=$(lxc exec master -- kubectl config get-contexts "$current_context" | tail -n 1 | awk '{print $3}')
+	else
+		cluster_name="no existing cluster"
+	fi
+
+	echo $cluster_name
+}
+
+deployservicesMinikube () {
+
+# Create namespace
+	NAMESPACE="fiware"
+	kubectl create namespace "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install mosquitto service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/mosquitto
+	helm install mosquitto . -n "$NAMESPACE"
+	SERVICE_NAME="mosquitto"
+	#kubectl patch service "$SERVICE_NAME" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	kubectl patch svc "$SERVICE_NAME" --patch '{"spec": {"type": "NodePort", "ports": [{"nodePort": 30883, "port": 1883, "protocol": "TCP", "targetPort": 1883}]}}' -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install mongo service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/mongo
+	kubectl create -f . -n "$NAMESPACE"
+	SERVICE_NAME="mongo-express"
+	#kubectl patch service "$SERVICE_NAME" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	kubectl patch svc "$SERVICE_NAME" --patch '{"spec": {"type": "NodePort", "ports": [{"nodePort": 30281, "port": 28081, "protocol": "TCP", "targetPort": 8081}]}}' -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install iotagent-json service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/iotagent-json
+	helm install iotagent-json . -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install orion service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/orion
+	helm install orion . -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install quantumleap service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/quantumleap
+	helm install quantumleap . -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install cratedb service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/crate
+	helm install crate . -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install api-crate service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/api-crate
+	kubectl create -f . -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install nginx service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/nginx
+	kubectl create -f . -n "$NAMESPACE"
+	SERVICE_NAME="nginx"
+	#kubectl patch service "$SERVICE_NAME" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	kubectl patch svc "$SERVICE_NAME" --patch '{"spec": {"type": "NodePort", "ports": [{"nodePort": 30080, "port": 4430, "protocol": "TCP", "targetPort": 8080}]}}' -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Install swagger service
+	sleep 5
+	cd ~/FiwareProdModeForPositionSystem/swagger
+
+	SERVICE_NAME="nginx"
+	export NODE_PORT_NGINX_API_CRATE=$(kubectl get svc "$SERVICE_NAME" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+	export NODE_PORT_NGINX_API_ORION=$(kubectl get svc "$SERVICE_NAME" -n "$NAMESPACE" -o jsonpath="{.spec.ports[1].nodePort}")
+
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	URL_1="http://api-crate:8080"
+	NEW_URL_1="https://$HOST:$NODE_PORT_NGINX_API_CRATE"
+	YAML_FILE="config-json.yaml"
+
+	sed -i "s|$URL_1|$NEW_URL_1|g" "$YAML_FILE"
+
+	kubectl create -f . -n "$NAMESPACE"
+	SERVICE_NAME_SWAGGER="swagger"
+	#kubectl patch service "$SERVICE_NAME_SWAGGER" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	kubectl patch svc "$SERVICE_NAME_SWAGGER" --patch '{"spec": {"type": "NodePort", "ports": [{"nodePort": 30081, "port": 8081, "protocol": "TCP", "targetPort": 8080}]}}' -n "$NAMESPACE"
+	echo -e "\033[1;32mdone\033[0m"
+
+# Update environmental file
+	SERVICE_NAME_ORION="orion"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export ORION_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	kubectl patch svc "$SERVICE_NAME_ORION" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	export ORION_PORT=$(kubectl get svc "$SERVICE_NAME_ORION" -n "$NAMESPACE" -o jsonpath='{...nodePort}')
+	
+	SERVICE_NAME_QUANTUMLEAP="quantumleap"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export QUANTUMLEAP_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	kubectl patch svc "$SERVICE_NAME_QUANTUMLEAP" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	export QUANTUMLEAP_PORT=$(kubectl get svc "$SERVICE_NAME_QUANTUMLEAP" -n "$NAMESPACE" -o jsonpath='{...nodePort}')
+
+	SERVICE_NAME_IOTA="iotagent-json"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export IOTA_JSON_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')	
+	kubectl patch svc "$SERVICE_NAME_IOTA" -p '{"spec": {"type": "NodePort"}}' -n "$NAMESPACE"
+	export IOTA_JSON_NORTH_PORT=$(kubectl get svc "$SERVICE_NAME_IOTA" -n "$NAMESPACE" -o jsonpath='{...ports[0].nodePort}')
+
+	cd ~/FiwareProdModeForPositionSystem/provision
+	ENV_FILE=".env"
+
+	OLD_ORION_HOST="orion"
+	OLD_ORION_PORT="1026"
+	sed -i "s|$OLD_ORION_HOST|$ORION_HOST|g" "$ENV_FILE"
+	sed -i "s|$OLD_ORION_PORT|$ORION_PORT|g" "$ENV_FILE"
+
+	OLD_QUANTUMLEAP_HOST="quantumleap"
+	OLD_QUANTUMLEAP_PORT="8668"
+	sed -i "s|$OLD_QUANTUMLEAP_HOST|$QUANTUMLEAP_HOST|g" "$ENV_FILE"
+	sed -i "s|$OLD_QUANTUMLEAP_PORT|$QUANTUMLEAP_PORT|g" "$ENV_FILE"
+
+	OLD_IOTA_JSON_HOST="iotagent-json"
+	OLD_IOTA_JSON_NORTH_PORT="4041"
+	sed -i "s|$OLD_IOTA_JSON_HOST|$IOTA_JSON_HOST|g" "$ENV_FILE"
+	sed -i "s|$OLD_IOTA_JSON_NORTH_PORT|$IOTA_JSON_NORTH_PORT|g" "$ENV_FILE"
+}
+
+loadDataMinikube () {
+	NAMESPACE="fiware"
+
+	docker run --rm -v $(pwd)/import-entities:/home/curl_user/import-entities \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
 		--entrypoint /bin/ash curlimages/curl import-entities
-	docker run --rm -v $(pwd)/provision-services:/provision-services \
+		
+	docker run --rm -v $(pwd)/provision-services:/home/curl_user/provision-services \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
 		-e IOTA_JSON_HOST="${IOTA_JSON_HOST}" \
 		-e IOTA_JSON_NORTH_PORT="${IOTA_JSON_NORTH_PORT}" \
 		--entrypoint /bin/ash curlimages/curl provision-services
-	docker run --rm -v $(pwd)/provision-devices:/provision-devices \
-		-e ORION_HOST="${ORION_HOST}" \
-		-e ORION_PORT="${ORION_PORT}" \
+
+	docker run --rm -v $(pwd)/provision-devices:/home/curl_user/provision-devices \
 		-e IOTA_JSON_HOST="${IOTA_JSON_HOST}" \
 		-e IOTA_JSON_NORTH_PORT="${IOTA_JSON_NORTH_PORT}" \
 		--entrypoint /bin/ash curlimages/curl provision-devices
-	docker run --rm -v $(pwd)/subscription-entities:/subscription-entities \
+
+	docker run --rm -v $(pwd)/subscription-entities:/home/curl_user/subscription-entities \
 		-e ORION_HOST="${ORION_HOST}" \
 		-e ORION_PORT="${ORION_PORT}" \
 		-e QUANTUMLEAP_HOST="${QUANTUMLEAP_HOST}" \
 		-e QUANTUMLEAP_PORT="${QUANTUMLEAP_PORT}" \
 		--entrypoint /bin/ash curlimages/curl subscription-entities
-	echo ""
+
+	docker run --rm -v $(pwd)/provision-init:/home/curl_user/provision-init \
+		-e ORION_HOST="${ORION_HOST}" \
+		-e ORION_PORT="${ORION_PORT}" \
+		--entrypoint /bin/ash curlimages/curl provision-init
+
+	sleep 5
+
+	cd ~/FiwareProdModeForPositionSystem/provision/
+	ENV_FILE=".env"
+
+	# ORION------------------------------------------------------------------------------------------------------------------------
+
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_ORION_HOST="ORION_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	ORION_HOST="ORION_HOST=orion"
+	sed -i "s|$OLD_ORION_HOST|$ORION_HOST|g" "$ENV_FILE"
+
+	SERVICE_NAME_ORION="orion"
+	export OLD_ORION_PORT=$(kubectl get svc "$SERVICE_NAME_ORION" -n "$NAMESPACE" -o jsonpath='{...nodePort}')
+	ORION_PORT="1026"
+	sed -i "s|$OLD_ORION_PORT|$ORION_PORT|g" "$ENV_FILE"
+	kubectl patch svc "$SERVICE_NAME_ORION" -p '{"spec": {"type": "ClusterIP"}}' -n "$NAMESPACE"
+
+	# IOTA-------------------------------------------------------------------------------------------------------------------------
+
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_IOTA_JSON_HOST="IOTA_JSON_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	IOTA_JSON_HOST="IOTA_JSON_HOST=iotagent-json"
+	sed -i "s|$OLD_IOTA_JSON_HOST|$IOTA_JSON_HOST|g" "$ENV_FILE"
+
+	SERVICE_NAME_IOTA="iotagent-json"
+	export OLD_IOTA_JSON_NORTH_PORT=$(kubectl get svc "$SERVICE_NAME_IOTA" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+	IOTA_JSON_NORTH_PORT="4041"
+	sed -i "s|$OLD_IOTA_JSON_NORTH_PORT|$IOTA_JSON_NORTH_PORT|g" "$ENV_FILE"
+	kubectl patch svc "$SERVICE_NAME_IOTA" -p '{"spec": {"type": "ClusterIP"}}' -n "$NAMESPACE"
+
+	# SWAGGER-------------------------------------------------------------------------------------------------------------------------
+
+	SERVICE_NAME_SWAGGER="swagger"
+  	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+  	export SWAGGER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	export SWAGGER_PORT=$(kubectl get svc "$SERVICE_NAME_SWAGGER" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+	echo "Service $SERVICE_NAME_SWAGGER type has been changed to NodePort with ip_address=$SWAGGER_HOST and port=$SWAGGER_PORT."
+
+	# MONGO EXPRESS-------------------------------------------------------------------------------------------------------------------------
+
+	SERVICE_NAME_MONGO_EXPRESS="mongo-express"
+  	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+  	export MONGO_EXPRESS_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	export MONGO_EXPRESS_PORT=$(kubectl get svc "$SERVICE_NAME_MONGO_EXPRESS" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+	echo "Service $SERVICE_NAME_MONGO_EXPRESS type has been changed to NodePort with ip_address=$MONGO_EXPRESS_HOST and port=$MONGO_EXPRESS_PORT."
+
+	# MOSQUITTO---------------------------------------------------------------------------------------------------------------------
+
+	SERVICE_NAME_MOSQUITTO="mosquitto"
+  	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+  	export MOSQUITTO_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	export MOSQUITTO_PORT=$(kubectl get svc "$SERVICE_NAME_MOSQUITTO" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+  	echo "Service $SERVICE_NAME_MOSQUITTO type has been changed to NodePort with ip_address=$MOSQUITTO_HOST and port=$MOSQUITTO_PORT."
+
+	# NGINX-------------------------------------------------------------------------------------------------------------------------
+
+	SERVICE_NAME_NGINX="nginx"
+  	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+  	export NODE_NGINX_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	export NODE_PORT_API_CRATE=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+	export NODE_PORT_API_ORION=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[1].nodePort}")
+	export NODE_PORT_DEV_MNGM=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[2].nodePort}")	
+	echo "Service api-crate has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_API_CRATE."
+  	echo "Service api-orion has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_API_ORION."
+  	echo "Service api-dev-mngmt has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_DEV_MNGM."
+
+	# MQTT-CLIENT-------------------------------------------------------------------------------------------------------------------------
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export MQTT_CLIENT_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	echo "MQTT-Client must use ip_address=$MQTT_CLIENT_HOST and port=$MOSQUITTO_PORT."
 }
 
+stopServicesMinikube () {
 
-addDatabaseIndex () {
-	printf "Adding appropriate \033[1mMongoDB\033[0m indexes for \033[1;34mOrion\033[0m  ..."
-	kubectl exec -n fiware -it pod/"${MONGO_POD_NAME}" -- /bin/bash '
-	conn = new Mongo();
-	db.createCollection("orion-openiot");
-	db = conn.getDB("orion-openiot");
-	db.createCollection("entities");
-	db.entities.createIndex({"_id.servicePath": 1, "_id.id": 1, "_id.type": 1}, {unique: true});
-	db.entities.createIndex({"_id.type": 1}); 
-	db.entities.createIndex({"_id.id": 1});' > /dev/null
-	exit
-	echo -e " \033[1;32mdone\033[0m"
+	NAMESPACE="fiware"
+	cd ~/FiwareProdModeForPositionSystem/swagger
+	YAML_FILE="config-json.yaml"
 
-	printf "Adding appropriate \033[1mMongoDB\033[0m indexes for \033[1;34mIoT-Agent\033[0m  ..."
-	kubectl exec -n fiware -it pod/"${MONGO_POD_NAME}" -- /bin/bash '
-	conn = new Mongo();
-	db = conn.getDB("iotagent-json");
-	db.createCollection("devices");
-	db.devices.createIndex({"_id.service": 1, "_id.id": 1, "_id.type": 1});
-	db.devices.createIndex({"_id.type": 1}); 
-	db.devices.createIndex({"_id.id": 1});
-	db.createCollection("groups");
-	db.groups.createIndex({"_id.resource": 1, "_id.apikey": 1, "_id.service": 1});
-	db.groups.createIndex({"_id.type": 1});' > /dev/null
-	exit
-	echo -e " \033[1;32mdone\033[0m"
-}
+	SERVICE_NAME="nginx"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export API_CRATE_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
+	export NODE_PORT_NGINX_API_CRATE=$(kubectl get svc "$SERVICE_NAME" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
+	URL_1="https://$API_CRATE_HOST:$NODE_PORT_NGINX_API_CRATE"
+	NEW_URL_1="http://api-crate:8080"
+	sed -i "s|$URL_1|$NEW_URL_1|g" "$YAML_FILE"
 
-wait () {
-	echo -e "\n⏳ Waiting for 7 seconds\n"
-	sleep 7
+	sleep 5
+
+	cd ~/FiwareProdModeForPositionSystem/provision
+	ENV_FILE=".env"
+
+	# QUANTUMLEAP------------------------------------------------------------------------------------------------------------------
+
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_QUANTUMLEAP_HOST="QUANTUMLEAP_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	QUANTUMLEAP_HOST="QUANTUMLEAP_HOST=quantumleap"
+	sed -i "s|$OLD_QUANTUMLEAP_HOST|$QUANTUMLEAP_HOST|g" "$ENV_FILE"
+
+	SERVICE_NAME_QUANTUMLEAP="quantumleap"
+	export OLD_QUANTUMLEAP_PORT=$(kubectl get svc "$SERVICE_NAME_QUANTUMLEAP" -n "$NAMESPACE" -o jsonpath='{...nodePort}')
+	QUANTUMLEAP_PORT="8668"
+	sed -i "s|$OLD_QUANTUMLEAP_PORT|$QUANTUMLEAP_PORT|g" "$ENV_FILE"
+
+	kubectl delete namespace "$NAMESPACE"
+	kubectl delete pv mongo-db
+
+	sleep 5
+	rm -rf ~/FiwareProdModeForPositionSystem/provision/certs/
+	sudo rm -rf /usr/local/share/ca-certificates/api.crt
+	sudo rm -rf /usr/local/share/ca-certificates/rootCA.crt
+
+	sudo update-ca-certificates
 }
 
 command="$1"
@@ -83,26 +339,47 @@ case "${command}" in
 		export $(cat .env | grep "#" -v)
 		echo "Pulling Docker images"
 		docker pull curlimages/curl
-		${dockerCmd} pull 
-		;;
-	 "provision")
-		export $(cat .env | grep "#" -v)
-		echo -e "Starting containers: \033[1;34mOrion\033[0m, \033[1;34mQuantumLeap\033[0m, \033[1;36mIoT-Agent\033[0m, \033[1mTutorial\033[0m, a \033[1mGrafana\033[0m metrics dashboard, \033[1mCrateDB\033[0m and \033[1mMongoDB\033[0m databases and a \033[1mRedis\033[0m cache."
-		echo -e "- \033[1;34mOrion\033[0m is the context broker"
-		echo -e "- \033[1;34mQuantumLeap\033[0m will write to CrateDB"
-		echo -e "- \033[1mGrafana\033[0m will read from CrateDB"
-		echo -e "- \033[1;36mIoT-Agent\033[0m is configured for the UltraLight Protocol"
-		echo -e "- \033[1mTutorial\033[0m acts as a series of dummy IoT Sensors over MQTT"
-		echo ""
-		loadData
-		cd ../Publisher-Agent && ${dockerCmd} up -d
+		verifyInstallation
+		result=$(clustertype)
+
+		if [[ $result == "minikube" ]]; then
+			deployservicesMinikube
+		elif [[ $result=="microk8s-cluster" ]]; then
+			deployservicesMicroK8s
+		else
+			echo $result
+		fi
+		echo -e "Deployed services \033[1;32mdone\033[0m"
 		;;
 	"start")
-		cd ../CSV-Data-Sender && ${dockerCmd} up -d
+		export $(cat .env | grep "#" -v)
+		result=$(clustertype)
+		echo $result
+		if [[ $result == "minikube" ]]; then
+			loadDataMinikube
+		elif [[ $result=="microk8s-cluster" ]]; then
+			loadDataMicroK8s
+		else
+			echo $result
+		fi
+		echo -e "Provisioned services \033[1;32mdone\033[0m"
+		;;
+	"stop")
+		export $(cat .env | grep "#" -v)
+		echo "Service provisioning stops"
+		result=$(clustertype)
+		if [[ $result == "minikube" ]]; then
+			stopServicesMinikube
+		elif [[ $result=="microk8s-cluster" ]]; then
+			stopServicesMicroK8s
+		else
+			echo $result
+		fi
+		echo -e "Stopped Services \033[1;32mdone\033[0m"
 		;;
 	*)
 		echo "Command not Found."
-		echo "usage: services [create|start|stop]"
+		echo "usage: services [create]"
 		exit 127;
 		;;
 esac
