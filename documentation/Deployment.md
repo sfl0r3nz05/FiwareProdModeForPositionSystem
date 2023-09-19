@@ -3,7 +3,7 @@
 1. Access to `provision` folder once the respository has been cloned:
 
     ```console
-    cd ~/FiwareK8sProdMode/provision/
+    cd ~/FiwareProdModeForPositionSystem/provision/
     ```
 
 2. Create and copy the certificates using `ssl.sh` script from services names like `mosquitto`, `iotagent-json` , `api` and `mqtt-client-1`. E.g.:
@@ -11,7 +11,7 @@
     > Details of the script have been documented in [Security Layer](./SecurityAdded.md)
 
     ```console
-    ./ssl.sh mosquitto iotagent-json api mqtt-client-1
+    ./ssl.sh api
     ```
 
 3. Provision entities, device and services as well as create subscriptions:
