@@ -1,16 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.28.0 (c4137012e)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: nginx
   name: nginx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      io.kompose.service: nginx
+  strategy:
+    type: Recreate
   template:
     metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.28.0 (c4137012e)
+      creationTimestamp: null
       labels:
-        app: nginx
+        io.kompose.network/kompose-default: "true"
+        io.kompose.service: nginx
     spec:
       containers:
       - image: nginx:1.18.0
@@ -48,3 +61,4 @@ spec:
         - name: nginx-selfsigned-key
           configMap:
             name: nginx-selfsigned-key
+status: {}

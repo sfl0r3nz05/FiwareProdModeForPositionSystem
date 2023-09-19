@@ -8,8 +8,6 @@
 
 2. Create and copy the certificates using `ssl.sh` script from services names like `mosquitto`, `iotagent-json` , `api` and `mqtt-client-1`. E.g.:
 
-    > Details of the script have been documented in [Security Layer](./SecurityAdded.md)
-
     ```console
     ./ssl.sh api
     ```
