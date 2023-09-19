@@ -208,10 +208,10 @@ loadDataMinikube () {
 		-e QUANTUMLEAP_PORT="${QUANTUMLEAP_PORT}" \
 		--entrypoint /bin/ash curlimages/curl subscription-entities
 
-	docker run --rm -v $(pwd)/provision-init:/home/curl_user/provision-init \
-		-e ORION_HOST="${ORION_HOST}" \
-		-e ORION_PORT="${ORION_PORT}" \
-		--entrypoint /bin/ash curlimages/curl provision-init
+	#docker run --rm -v $(pwd)/provision-init:/home/curl_user/provision-init \
+	#	-e ORION_HOST="${ORION_HOST}" \
+	#	-e ORION_PORT="${ORION_PORT}" \
+	#	--entrypoint /bin/ash curlimages/curl provision-init
 
 	sleep 5
 

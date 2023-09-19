@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.8"
 
 services:
   publisher-agent:
@@ -18,9 +18,4 @@ services:
       - TOPIC=/5jggokgpepnvsb2uv4s40d59ov/tag001/attrs
     ports:
       - 8053:8053
-    networks:
-      - outside
-
-networks:
-  outside:
-    external: true
+    network_mode: "host"

@@ -23,8 +23,8 @@ curl -s -o /dev/null -X PATCH \
 		  "type": "Integer"
 	  },
 	  "timestamp": {
-	  	"value": "1695158663",
-	  	"type": "Text"
+	  	"value": "2022-10-03T08:03:10.517Z",
+	  	"type": "DateTime"
 	  },
 	  "tagID": {
 	  	"value": "T3",
