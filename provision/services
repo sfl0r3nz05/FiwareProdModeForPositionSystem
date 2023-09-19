@@ -324,7 +324,7 @@ stopServicesMinikube () {
 	sudo update-ca-certificates
 }
 
-startSyntheticDataGeneratore () {
+startSyntheticDataGenerator () {
 
 # Start Publisher Agent
 	cd ~/FiwareProdModeForPositionSystem/publisher-agent

@@ -23,7 +23,7 @@ spec:
         - env:
             - name: CRATE_HOST_PORT
               value: crate:4200
-          image: sflorenz05/api-python-cratedb:v0.2
+          image: sflorenz05/api-crate:v0.2
           name: api-crate
           ports:
             - containerPort: 8080
