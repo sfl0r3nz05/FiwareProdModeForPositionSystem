@@ -326,6 +326,44 @@ stopServicesMinikube () {
 	sudo update-ca-certificates
 }
 
+startSyntheticDataGeneratore () {
+
+# Start Publisher Agent
+	cd ~/FiwareProdModeForPositionSystem/publisher-agent
+	YAML_FILE="docker-compose.yml"
+	OLD_MQTT_HOST="MQTT_QUEUE_HOST=mosquitto"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export NEW_MQTT_HOST="MQTT_QUEUE_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	sed -i "s|$OLD_MQTT_HOST|$NEW_MQTT_HOST|g" "$YAML_FILE"
+
+# Start Synthetic Data Generator
+	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
+	YAML_FILE="docker-compose.yml"
+	OLD_SOCK_LISTENER="SOCK_LISTENER_HOST=publisher"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	sed -i "s|$OLD_SOCK_LISTENER|$NEW_SOCK_LISTENER|g" "$YAML_FILE"
+}
+
+stopSyntheticDataGenerator () {
+
+# Start Publisher Agent
+	cd ~/FiwareProdModeForPositionSystem/publisher-agent
+	YAML_FILE="docker-compose.yml"
+	NEW_MQTT_HOST="MQTT_QUEUE_HOST=mosquitto"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_MQTT_HOST="MQTT_QUEUE_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	sed -i "s|$OLD_MQTT_HOST|$NEW_MQTT_HOST|g" "$YAML_FILE"
+
+# Start Synthetic Data Generator
+	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
+	YAML_FILE="docker-compose.yml"
+	NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=publisher"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_SOCK_LISTENER="SOCK_LISTENER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	sed -i "s|$OLD_SOCK_LISTENER|$NEW_SOCK_LISTENER|g" "$YAML_FILE"
+}
+
 command="$1"
 case "${command}" in
 	"help")
@@ -353,8 +391,10 @@ case "${command}" in
 		echo $result
 		if [[ $result == "minikube" ]]; then
 			loadDataMinikube
+			startSyntheticDataGenerator
 		elif [[ $result=="microk8s-cluster" ]]; then
 			loadDataMicroK8s
+			startSyntheticDataGenerator
 		else
 			echo $result
 		fi
@@ -366,8 +406,10 @@ case "${command}" in
 		result=$(clustertype)
 		if [[ $result == "minikube" ]]; then
 			stopServicesMinikube
+			stopSyntheticDataGenerator
 		elif [[ $result=="microk8s-cluster" ]]; then
 			stopServicesMicroK8s
+			stopSyntheticDataGenerator
 		else
 			echo $result
 		fi
