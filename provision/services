@@ -316,6 +316,7 @@ stopServicesMinikube () {
 	# Start Publisher Agent
 	cd ~/FiwareProdModeForPositionSystem/publisher-agent
 	docker compose down
+	docker rmi -f publisher-agent-publisher-agent
 	YAML_FILE="docker-compose.yml"
 	NEW_MQTT_HOST="MQTT_QUEUE_HOST=mosquitto"
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')
@@ -331,6 +332,7 @@ stopServicesMinikube () {
 # Start Synthetic Data Generator
 	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
 	docker compose down
+	docker rmi -f csv-data-sender-synthetic-data-generator-file
 	YAML_FILE="docker-compose.yml"
 	NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=publisher"
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')

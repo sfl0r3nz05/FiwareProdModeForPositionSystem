@@ -33,18 +33,18 @@ curl -s -o /dev/null -X POST \
                     "type": "Integer",
                     "metadata": {
                         "unitCode": {
-                            "type": "text",
-                            "value": "text"
+                            "type": "Text",
+                            "value": "Text"
                         }
                     }
                 },
                 {
                     "object_id": "timestamp",
                     "name": "timestamp",
-                    "type": "DateTime",
+                    "type": "Text",
                     "metadata": {
                         "unitCode": {
-                            "type": "text",
+                            "type": "Text",
                             "value": "timestamp"
                         }
                     }

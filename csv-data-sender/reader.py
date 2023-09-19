@@ -3,9 +3,9 @@ import csv
 import socket
 import time
 
-os.environ['SOCK_LISTENER_HOST']
-os.environ['SOCK_LISTENER_PORT']
-os.environ['SLEEP_TIME']
+SOCK_HOST = os.environ['SOCK_LISTENER_HOST']
+SOCK_PORT = os.environ['SOCK_LISTENER_PORT']
+SLEEP_TIME = os.environ['SLEEP_TIME']
 
 with open("UDP_107_108.csv", 'r') as file:
   csvreader = csv.reader(file)
@@ -25,5 +25,5 @@ with open("UDP_107_108.csv", 'r') as file:
       print(result)
     else:
       result = f"{aux[0]};{aux[1]};T{aux[2]};{aux[3]}"
-    send_server_socket.sendto(bytes(result, "utf-8"),(os.getenv("SOCK_LISTENER_HOST"),int(os.getenv("SOCK_LISTENER_PORT"))))
-    time.sleep(float(os.getenv("SLEEP_TIME")))
+    send_server_socket.sendto(bytes(result, "utf-8"),(SOCK_HOST,int(SOCK_PORT)))
+    time.sleep(float(SLEEP_TIME))

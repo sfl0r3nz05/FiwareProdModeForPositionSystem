@@ -19,10 +19,11 @@ service:
   httpSouthPort: 7896
   # -- port to be used by the service for mqtt communication
   mqttPort: 1883
+  #mqttPort: 8883
   # -- port to be used by the service for amqp communication
   amqpPort: 5672
 
-## if a iot-agent specific service account should be used, it can be configured here
+## if a iotagent-json specific service account should be used, it can be configured here
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
 serviceAccount:
   # -- specifies if the account should be created
@@ -59,8 +60,9 @@ deployment:
   httpSouthPort: 7896
   # -- port to be used by the service for mqtt communication
   mqttPort: 1883
+  # mqttPort: 8883
   # -- port to be used by the service for amqp communication
-  amqpPort: 5672
+  # amqpPort: 5672
   # -- additional labels for the deployment, if required
   additionalLabels: {}
   # -- additional annotations for the deployment, if required
@@ -364,6 +366,6 @@ deviceRegistry:
     ## port of the mongodb
     port: 27017
     ## name of the db used
-    dbName: iotagentjson
+    dbName: iotagent-json
     ## name of the replicaset, if used
     # replicaSet: dr
