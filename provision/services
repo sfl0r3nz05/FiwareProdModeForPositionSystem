@@ -222,26 +222,26 @@ loadDataMinikube () {
 
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')
 	export OLD_ORION_HOST="ORION_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
-	ORION_HOST="ORION_HOST=orion"
-	sed -i "s|$OLD_ORION_HOST|$ORION_HOST|g" "$ENV_FILE"
+	NEW_ORION_HOST="ORION_HOST=orion"
+	sed -i "s|$OLD_ORION_HOST|$NEW_ORION_HOST|g" "$ENV_FILE"
 
 	SERVICE_NAME_ORION="orion"
 	export OLD_ORION_PORT=$(kubectl get svc "$SERVICE_NAME_ORION" -n "$NAMESPACE" -o jsonpath='{...nodePort}')
-	ORION_PORT="1026"
-	sed -i "s|$OLD_ORION_PORT|$ORION_PORT|g" "$ENV_FILE"
+	NEW_ORION_PORT="1026"
+	sed -i "s|$OLD_ORION_PORT|$NEW_ORION_PORT|g" "$ENV_FILE"
 	kubectl patch svc "$SERVICE_NAME_ORION" -p '{"spec": {"type": "ClusterIP"}}' -n "$NAMESPACE"
 
 	# IOTA-------------------------------------------------------------------------------------------------------------------------
 
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')
 	export OLD_IOTA_JSON_HOST="IOTA_JSON_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
-	IOTA_JSON_HOST="IOTA_JSON_HOST=iotagent-json"
-	sed -i "s|$OLD_IOTA_JSON_HOST|$IOTA_JSON_HOST|g" "$ENV_FILE"
+	NEW_IOTA_JSON_HOST="IOTA_JSON_HOST=iotagent-json"
+	sed -i "s|$OLD_IOTA_JSON_HOST|$NEW_IOTA_JSON_HOST|g" "$ENV_FILE"
 
 	SERVICE_NAME_IOTA="iotagent-json"
 	export OLD_IOTA_JSON_NORTH_PORT=$(kubectl get svc "$SERVICE_NAME_IOTA" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
-	IOTA_JSON_NORTH_PORT="4041"
-	sed -i "s|$OLD_IOTA_JSON_NORTH_PORT|$IOTA_JSON_NORTH_PORT|g" "$ENV_FILE"
+	NEW_IOTA_JSON_NORTH_PORT="4041"
+	sed -i "s|$OLD_IOTA_JSON_NORTH_PORT|$NEW_IOTA_JSON_NORTH_PORT|g" "$ENV_FILE"
 	kubectl patch svc "$SERVICE_NAME_IOTA" -p '{"spec": {"type": "ClusterIP"}}' -n "$NAMESPACE"
 
 	# SWAGGER-------------------------------------------------------------------------------------------------------------------------
@@ -274,8 +274,6 @@ loadDataMinikube () {
   	export INTERFACE=$(ip route | grep default | awk '{print $5}')
   	export NODE_NGINX_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')
 	export NODE_PORT_API_CRATE=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")
-	export NODE_PORT_API_ORION=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[1].nodePort}")
-	export NODE_PORT_DEV_MNGM=$(kubectl get svc "$SERVICE_NAME_NGINX" -n "$NAMESPACE" -o jsonpath="{.spec.ports[2].nodePort}")	
 	echo "Service api-crate has been mapped on $SERVICE_NAME_NGINX to NodePort with ip_address=$NODE_NGINX_HOST and port=$NODE_PORT_API_CRATE."
 
 	# MQTT-CLIENT-------------------------------------------------------------------------------------------------------------------------
