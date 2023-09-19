@@ -24,11 +24,7 @@
     ./services start
     ```
 
-5. Accept the risk when self signed certificates are used:
-
-6. Short demonstration using `Swagger`:
-
-7. Remove services, fiware namespace, certificates and restart environmental variables:
+5. Remove services, fiware namespace, certificates and restart environmental variables:
 
     ```console
     ./services stop

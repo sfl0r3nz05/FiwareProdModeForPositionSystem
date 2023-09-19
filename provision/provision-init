@@ -15,7 +15,7 @@ printf "🚀 Pushing urn:ngsi-ld:Tag:001 \n"
 curl -s -o /dev/null -X PATCH \
   "http://$ORION_HOST:$ORION_PORT/v2/entities/urn:ngsi-ld:Tag:001/attrs" \
   -H 'Content-Type: application/json' \
-  -H 'fiware-service: org1' \
+  -H 'fiware-service: openiot' \
   -H 'fiware-servicepath: /' \
   -d '{
     "ID_mensaje": {"value": 109,"type": "Integer"},

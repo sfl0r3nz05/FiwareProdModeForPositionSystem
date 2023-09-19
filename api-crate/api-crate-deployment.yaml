@@ -23,6 +23,8 @@ spec:
         - env:
             - name: CRATE_HOST_PORT
               value: crate:4200
+            - name: MONGODB_URI
+              value: mongodb://mongo-db
           image: sflorenz05/api-crate:v0.2
           name: api-crate
           ports:

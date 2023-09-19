@@ -3,6 +3,7 @@ version: "3.8"
 services:
   synthetic-data-generator-file:
     container_name: csv-data-sender
+    hostname: csv-data-sender
     build:
       context: .
     environment:

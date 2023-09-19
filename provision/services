@@ -362,7 +362,8 @@ startSyntheticDataGenerator () {
 	SERVICE_NAME_MOSQUITTO="mosquitto"
 	OLD_MQTT_PORT="MQTT_QUEUE_PORT=1883"
 	export NEW_MQTT_PORT="MQTT_QUEUE_PORT=$(kubectl get svc "$SERVICE_NAME_MOSQUITTO" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")"
-	sed -i "s|$OLD_MQTT_PORT|$NEW_MQTT_PORT|g" "$YAML_FILE"	
+	sed -i "s|$OLD_MQTT_PORT|$NEW_MQTT_PORT|g" "$YAML_FILE"
+	docker compose up -d
 
 # Start Synthetic Data Generator
 	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
@@ -371,6 +372,7 @@ startSyntheticDataGenerator () {
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')
 	export NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
 	sed -i "s|$OLD_SOCK_LISTENER|$NEW_SOCK_LISTENER|g" "$YAML_FILE"
+	docker compose up -d
 }
 
 command="$1"
