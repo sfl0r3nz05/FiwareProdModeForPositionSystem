@@ -313,6 +313,30 @@ stopServicesMinikube () {
 	QUANTUMLEAP_PORT="8668"
 	sed -i "s|$OLD_QUANTUMLEAP_PORT|$QUANTUMLEAP_PORT|g" "$ENV_FILE"
 
+	# Start Publisher Agent
+	cd ~/FiwareProdModeForPositionSystem/publisher-agent
+	docker compose down
+	YAML_FILE="docker-compose.yml"
+	NEW_MQTT_HOST="MQTT_QUEUE_HOST=mosquitto"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_MQTT_HOST="MQTT_QUEUE_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	sed -i "s|$OLD_MQTT_HOST|$NEW_MQTT_HOST|g" "$YAML_FILE"
+
+	NAMESPACE="fiware"
+	SERVICE_NAME_MOSQUITTO="mosquitto"
+	NEW_MQTT_PORT="MQTT_QUEUE_PORT=1883"
+	export OLD_MQTT_PORT="MQTT_QUEUE_PORT=$(kubectl get svc "$SERVICE_NAME_MOSQUITTO" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")"
+	sed -i "s|$OLD_MQTT_PORT|$NEW_MQTT_PORT|g" "$YAML_FILE"	
+
+# Start Synthetic Data Generator
+	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
+	docker compose down
+	YAML_FILE="docker-compose.yml"
+	NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=publisher"
+	export INTERFACE=$(ip route | grep default | awk '{print $5}')
+	export OLD_SOCK_LISTENER="SOCK_LISTENER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
+	sed -i "s|$OLD_SOCK_LISTENER|$NEW_SOCK_LISTENER|g" "$YAML_FILE"
+
 	kubectl delete namespace "$NAMESPACE"
 	kubectl delete pv mongo-db
 
@@ -334,31 +358,18 @@ startSyntheticDataGenerator () {
 	export NEW_MQTT_HOST="MQTT_QUEUE_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
 	sed -i "s|$OLD_MQTT_HOST|$NEW_MQTT_HOST|g" "$YAML_FILE"
 
+	NAMESPACE="fiware"
+	SERVICE_NAME_MOSQUITTO="mosquitto"
+	OLD_MQTT_PORT="MQTT_QUEUE_PORT=1883"
+	export NEW_MQTT_PORT="MQTT_QUEUE_PORT=$(kubectl get svc "$SERVICE_NAME_MOSQUITTO" -n "$NAMESPACE" -o jsonpath="{.spec.ports[0].nodePort}")"
+	sed -i "s|$OLD_MQTT_PORT|$NEW_MQTT_PORT|g" "$YAML_FILE"	
+
 # Start Synthetic Data Generator
 	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
 	YAML_FILE="docker-compose.yml"
 	OLD_SOCK_LISTENER="SOCK_LISTENER_HOST=publisher"
 	export INTERFACE=$(ip route | grep default | awk '{print $5}')
 	export NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
-	sed -i "s|$OLD_SOCK_LISTENER|$NEW_SOCK_LISTENER|g" "$YAML_FILE"
-}
-
-stopSyntheticDataGenerator () {
-
-# Start Publisher Agent
-	cd ~/FiwareProdModeForPositionSystem/publisher-agent
-	YAML_FILE="docker-compose.yml"
-	NEW_MQTT_HOST="MQTT_QUEUE_HOST=mosquitto"
-	export INTERFACE=$(ip route | grep default | awk '{print $5}')
-	export OLD_MQTT_HOST="MQTT_QUEUE_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
-	sed -i "s|$OLD_MQTT_HOST|$NEW_MQTT_HOST|g" "$YAML_FILE"
-
-# Start Synthetic Data Generator
-	cd ~/FiwareProdModeForPositionSystem/csv-data-sender
-	YAML_FILE="docker-compose.yml"
-	NEW_SOCK_LISTENER="SOCK_LISTENER_HOST=publisher"
-	export INTERFACE=$(ip route | grep default | awk '{print $5}')
-	export OLD_SOCK_LISTENER="SOCK_LISTENER_HOST=$(ip addr show "$INTERFACE" | grep -oP 'inet \K[\d.]+')"
 	sed -i "s|$OLD_SOCK_LISTENER|$NEW_SOCK_LISTENER|g" "$YAML_FILE"
 }
 
@@ -404,10 +415,8 @@ case "${command}" in
 		result=$(clustertype)
 		if [[ $result == "minikube" ]]; then
 			stopServicesMinikube
-			stopSyntheticDataGenerator
 		elif [[ $result=="microk8s-cluster" ]]; then
 			stopServicesMicroK8s
-			stopSyntheticDataGenerator
 		else
 			echo $result
 		fi
